@@ -71,13 +71,20 @@ def viton_out(file):
 
 @app.route("/viton", methods=["POST"])
 def viton_in():
+    if os.path.exists('.VITON-lock'): abort(423)
     file = request.files['file']
-    file.save(request.form.get('name'))
+    file.save('input')
+    os.system('convert input input.jpg')
+    name = request.form.get('name')
+    pairs = open("VITON-HD/datasets/test_pairs.txt", 'w')
+    pairs.write(f'user.jpg {name}.jpg')
+    pairs.close()
+    os.system("./main.sh &")
     return "success"
 
 @app.route("/")
 def index():
-    return """<form action="/viton" method="post">  
+    return """<form action="/viton" method="post" enctype="multipart/form-data">  
         <input type="file" name="file"/><br>
         <label for="name">Name:</label>
         <input type="text" name="name"><br>
