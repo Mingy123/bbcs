@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC  -fopenmp  -fopenmp -O3 -shared -Wl,-soname,libopenpose_gpu.so -o libopenpose_gpu.so CMakeFiles/openpose_gpu.dir/cuda.cpp.o CMakeFiles/openpose_gpu.dir/gpu.cpp.o CMakeFiles/openpose_gpu.dir/opencl.cpp.o  -Wl,-rpath,/home/mingy/openpose-1.7.0/build/src/openpose/core: ../core/libopenpose_core.so 
