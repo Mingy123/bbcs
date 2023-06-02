@@ -1,5 +1,9 @@
 VITON-HD/checkpoints/
-cihp/checkpoint
+VITON-HD/datasets/test/
+VITON-HD/results/
+cihp/checkpoint/*
+cihp/dataset/images/*
 openpose-1.7.0/models/face/*
 openpose-1.7.0/models/hand/*
 openpose-1.7.0/models/pose/*
+**/__pycache__/
