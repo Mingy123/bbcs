@@ -1,0 +1,5 @@
+VITON-HD/checkpoints/
+cihp/checkpoint
+openpose-1.7.0/models/face/*
+openpose-1.7.0/models/hand/*
+openpose-1.7.0/models/pose/*
