@@ -97,17 +97,22 @@ def recommend():
     purchase_embeddings = embeddings.loc[embeddings["product_code"].isin(purchase_history)]
     average = np.average(purchase_embeddings["embedding"].tolist(), axis=0)
     distances, indices = nn.kneighbors(average.reshape(1, -1))
-    # indices is a list of numbers
+    recco = [ITEM_IDS[i] for i in indices[0].tolist()] # indices was [[2, 3, 4]] limit to 100
 
     # name, url, price, id, tags
-    query = conn.execute("select * from items")
+    query = conn.execute("select * from items").fetchall()
     conn.close()
-    not_inside = [i for i in ITEM_IDS if i not in indices]
+    not_inside = [i for i in ITEM_IDS if i not in recco]
     random.shuffle(not_inside)
+    print(not_inside)
+    print(recco)
+    for i in query: print(i[3], end=' ')
     ans = []
-    for i in indices:
+    for i in recco:
         for j in query:
+            if i == 893795: print('pass1')
             if j[3] == i:
+                print('ok')
                 ans.append({
                     "name": j[0],
                     "url": j[1],
@@ -116,11 +121,12 @@ def recommend():
                     "tags": j[4]
                 })
     for i in query:
-        if i in not_inside:
+        if i[3] in not_inside:
+            print('ok')
             ans.append({
                 "name": i[0],
                 "url": i[1],
-                "price": i[2],
+                "price": i[3],
                 "id": i[3],
                 "tags": i[4]
             })
@@ -189,4 +195,4 @@ def index():
     return send_from_directory(".", "index.html")
 
 if __name__ == "__main__":
-    app.run(port=8000)
+    app.run(host='0.0.0.0', port=8000)
