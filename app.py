@@ -105,6 +105,8 @@ def recommend():
     distances, indices = nn.kneighbors(average.reshape(1, -1))
     # indices is a list of numbers
 
+    # TODO: name, url, price, id, tags
+    # just keep everything in the database
     ans = []
     for i in indices:
         item = get_details_by_id(i)

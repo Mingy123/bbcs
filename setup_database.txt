@@ -9,7 +9,8 @@ create table items (
     name varchar primary key,
     image varchar,
     price real,
-    id integer
+    id integer,
+    tags varchar
 );
 create table purchases (
     uuid varchar primary key,
