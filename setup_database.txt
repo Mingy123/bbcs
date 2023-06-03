@@ -15,6 +15,7 @@ create table purchases (
     uuid varchar primary key,
     address varchar,
     item varchar,
+    size varchar,
     username varchar,
     foreign key(item) references items(name) on delete cascade,
     foreign key(username) references users(username) on delete cascade

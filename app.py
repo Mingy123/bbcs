@@ -67,6 +67,8 @@ def viton_history():
 
 
 # TODO
+# for this one i want to return a detailed list of every item
+# essentially making /details useless
 @app.route("/recommend")
 def recommend():
     username = request.headers.get("X-Username").replace("'", "''")
@@ -118,8 +120,6 @@ def viton_in():
     os.system(f"bash -i main.sh {outfile} &")
     return str(outfile)
 
-# TODO: find out what exactly i wanna store other than payment details
-# shipping address? item id?
 @app.route("/payment", methods=["POST"])
 def payment():
     username = request.headers.get("X-Username").replace("'", "''")
@@ -130,9 +130,11 @@ def payment():
     conn = sqlite3.connect(DATABASE)
     if not valid_cred(username, password, conn): abort(403)
 
-    item = int(request.form.get("item"))
+    address = request.form.get("address")
+    item = request.form.get("item")
+    size = request.form.get("size")
     uuid = uuid4()
-    conn.execute(f"insert into puchases values('{uuid}', '{item}', '{username}')")
+    conn.execute(f"insert into puchases values('{uuid}', '{address}', '{item}', '{size}', '{username}')")
     conn.commit()
     conn.close()
     return uuid
