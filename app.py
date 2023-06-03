@@ -79,7 +79,6 @@ def viton_history():
     return query[0][0]
 
 
-# TODO
 # for this one i want to return a detailed list of every item
 # essentially making /details useless
 @app.route("/recommend")
@@ -130,7 +129,7 @@ def recommend():
                 "id": i[3],
                 "tags": i[4]
             })
-    return json.dumps(ans)
+    return ans
 
 # returns ["item_name", "image_name", price, id]
 # returns 404 if item doesnt exist
@@ -141,7 +140,7 @@ def item_detail():
     query = conn.execute(f"select * from items where name == '{id}'").fetchall()
     conn.close()
     if not query: abort(404)
-    return json.dumps(query[0]) # or could i just straight up return this?
+    return json.dumps(query[0])
 
 # static fileserver
 @app.route("/images/<path:file>")
@@ -152,7 +151,7 @@ def viton_out(file):
     return send_from_directory('./output', file)
 
 
-# returns a uuid used to access the output later
+# returns a uuid used to access the output later (GET /viton/{uuid}.png)
 @app.route("/viton", methods=["POST"])
 def viton_in():
     if os.path.exists(LOCKFILE): abort(423)
