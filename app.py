@@ -1,6 +1,7 @@
 from flask import Flask, request, abort, send_from_directory
 from hashlib import sha256
-import sqlite3, json, uuid
+from uuid import uuid4
+import sqlite3, json
 
 app = Flask(__name__)
 DATABASE = 'db'
@@ -44,6 +45,7 @@ def check_login():
     password = m.hexdigest()
     conn = sqlite3.connect(DATABASE)
     if not valid_cred(username, password, conn): abort(401)
+    conn.close()
     return "success"
 
 
@@ -59,6 +61,7 @@ def viton_history():
     conn = sqlite3.connect(DATABASE)
     query = conn.execute(("select viton_history from users where "
         f"username == '{username}' and password == '{password}'")).fetchall()
+    conn.close()
     if not query: abort(403)
     return query[0][0]
 
@@ -74,6 +77,7 @@ def recommend():
     conn = sqlite3.connect(DATABASE)
     if not valid_cred(username, password, conn): abort(403)
     ## AZAZO GIVE AI
+    conn.close()
     return "todo"
 
 # returns ["item_name", "image_name", price, id]
@@ -83,6 +87,7 @@ def item_detail():
     id = request.args.get('name').replace("'", "''")
     conn = sqlite3.connect(DATABASE)
     query = conn.execute(f"select * from items where name == '{id}'").fetchall()
+    conn.close()
     if not query: abort(404)
     return json.dumps(query[0]) # or could i just straight up return this?
 
@@ -109,9 +114,29 @@ def viton_in():
     pairs = open("VITON-HD/datasets/test_pairs.txt", 'w')
     pairs.write(f'user.jpg {name}.jpg')
     pairs.close()
-    outfile = uuid.uuid4()
+    outfile = uuid4()
     os.system(f"bash -i main.sh {outfile} &")
     return str(outfile)
+
+# TODO: find out what exactly i wanna store other than payment details
+# shipping address? item id?
+@app.route("/payment", methods=["POST"])
+def payment():
+    username = request.headers.get("X-Username").replace("'", "''")
+    password = request.headers.get("X-Password")
+    m = sha256()
+    m.update(bytes(password, 'utf-8'))
+    password = m.hexdigest()
+    conn = sqlite3.connect(DATABASE)
+    if not valid_cred(username, password, conn): abort(403)
+
+    item = int(request.form.get("item"))
+    uuid = uuid4()
+    conn.execute(f"insert into puchases values('{uuid}', '{item}', '{username}')")
+    conn.commit()
+    conn.close()
+    return uuid
+
 
 @app.route("/")
 def index():

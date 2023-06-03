@@ -1,3 +1,4 @@
+pragma foreign_keys = ON;
 create table users (
     username varchar primary key,
     password varchar,
@@ -11,6 +12,15 @@ create table items (
     id integer
 );
 create table purchases (
-    username varchar,
-    uuid varchar
+    uuid varchar primary key,
+    name varchar,
+    foreign key(username) references users(username) on delete cascade
 );
+
+=====
+NOTES
+=====
+users.password is a hex-encoded sha256 hash
+users.purchase_history is a csv of item IDs
+users.viton_history is a csv of UUIDs
+items.image is the name of the image url. For example, `00400_00.jpg` will be stored as "00400_00"
