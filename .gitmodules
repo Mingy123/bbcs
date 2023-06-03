@@ -1,0 +1,3 @@
+[submodule "ktryon_android"]
+	path = ktryon_android
+	url = git@github.com:kde1704/ktryon_android
