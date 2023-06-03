@@ -3,10 +3,23 @@ from hashlib import sha256
 from uuid import uuid4
 import sqlite3, json
 
+from sklearn.neighbors import NearestNeighbors
+import pandas as pd
+import numpy as np
+
 app = Flask(__name__)
 DATABASE = 'db'
 LOCKFILE = '.VITON-lock'
 
+embeddings = pd.read_csv("embeddings.csv")
+embeddings["embedding"] = embeddings["embedding"].apply(
+    lambda x: eval(x)
+)
+
+# this is ugly but i dont really care
+nn = NearestNeighbors(n_neighbors=10).fit(
+    np.stack(embeddings["embedding"].tolist(), axis=0)
+)
 
 def valid_cred(username, password, conn):
     query = conn.execute(("select username from users where "
@@ -79,8 +92,20 @@ def recommend():
     conn = sqlite3.connect(DATABASE)
     if not valid_cred(username, password, conn): abort(403)
     ## AZAZO GIVE AI
+
+    # hello.
+
+    # assuming that .fetchall() returns list of (uuid, address, whatever)
+    purchase_history = [i[2] for i in conn.execute(f"select puchases from users where "
+        f"username == '{username}' and password == '{password}'").fetchall()]
     conn.close()
-    return "todo"
+
+    purchase_embeddings = embeddings.loc[embeddings["product_code"].isin(purchase_history)]
+    average = np.average(purchase_embeddings["embedding"].tolist(), axis=0)
+
+    distances, indices = nn.kneighbors(average.reshape(1, -1))
+
+    return indices
 
 # returns ["item_name", "image_name", price, id]
 # returns 404 if item doesnt exist
