@@ -166,7 +166,7 @@ def payment():
     conn.execute(f"insert into puchases values('{uuid}', '{address}', '{item}', '{size}', '{username}')")
     conn.commit()
     conn.close()
-    return uuid
+    return str(uuid)
 
 
 @app.route("/")
