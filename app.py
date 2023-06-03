@@ -38,8 +38,8 @@ def create_user():
 # returns 401 if invalid
 @app.route("/check-login")
 def check_login():
-    username = request.args.get("username").replace("'", "''")
-    password = request.form.get("password")
+    username = request.headers.get("X-Username").replace("'", "''")
+    password = request.headers.get("X-Password")
     m = sha256()
     m.update(bytes(password, 'utf-8'))
     password = m.hexdigest()
