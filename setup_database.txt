@@ -1,0 +1,16 @@
+create table users (
+    username varchar primary key,
+    password varchar,
+    purchase_history varchar,
+    viton_history varchar
+);
+create table items (
+    name varchar primary key,
+    image varchar,
+    price real,
+    id integer
+);
+create table purchases (
+    username varchar,
+    uuid varchar
+);

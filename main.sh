@@ -1,7 +1,6 @@
 #!/bin/bash
 # this script only does one at a time, so do put a lock at the server side
 
-touch .VITON-lock
 convert input.jpg -gravity center -crop 3:4 -resize 768x1024 cropped.jpg
 
 cd openpose-1.7.0
@@ -21,7 +20,6 @@ conda deactivate
 cp output/cihp_parsing_maps/downscale_vis.png ../cihp.png
 cd ..
 
-# todo: process this image???
 convert cihp.png -resize 768x1024 upscaled.png
 python sharpen.py upscaled.png # does not work well, just a placeholder
 
@@ -32,5 +30,5 @@ cp ../pose.png datasets/test/openpose-img/user_rendered.png
 cp ../pose.json datasets/test/openpose-json/user_keypoints.json
 python test.py --name production
 # i would have edited test_pairs.txt from the server
-mv results/production/* ../final.png
+mv results/production/* ../output/$1.png
 rm ../.VITON-lock

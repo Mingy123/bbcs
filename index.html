@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<body>
+	<h2>Create user</h2>
+	<form action="/create-user" method="post">
+    	<label for="username">Username:</label>
+    	<input type="text" name="username"><br>
+    	<label for="password">Password:</label>
+    	<input type="text" name="password"><br><br>
+		<input type="submit" value="Submit">
+	</form><br><br>
+
+	<h3>Get VITON history</h3>
+	<form class="auth-form" action="/viton-history">
+		<input type="submit" value="Submit">
+	</form><br><br>
+
+	<h3>Get recommendations</h3>
+	<form class="auth-form" action="/recommend">
+		<input type="submit" value="Submit">
+	</form><br><br>
+
+	<h3>Item details</h3>
+	<form action="/detail">
+    	<label for="name">Item name:</label>
+    	<input type="text" name="name">
+		<input type="submit" value="Submit">
+	</form><br><br>
+
+    <form action="/viton" method="post" enctype="multipart/form-data">  
+        <input type="file" name="file"/><br>
+        <label for="name">Name:</label>
+        <input type="text" name="name"><br>
+        <input type="submit" value="Upload">
+	</form>
+
+
+	<script>
+		var forms = document.querySelectorAll('.auth-form');
+		for (var i = 0; i < forms.length; i++) {
+		  forms[i].addEventListener('submit', function(event) {
+		    event.preventDefault();
+		    var xhr = new XMLHttpRequest();
+		    xhr.open(event.target.method, event.target.action, true);
+		    xhr.setRequestHeader('X-Username', 'mingy');
+		    xhr.setRequestHeader('X-Password', 'idk');
+		    xhr.onreadystatechange = function() {
+		      if (xhr.readyState === 4 && xhr.status === 200) {
+				console.log(xhr.responseText);
+		      }
+		    };
+		    xhr.send(new FormData(event.target));
+		  });
+		}
+	</script>
+
+</body>
+</html>
