@@ -1,0 +1,150 @@
+have a list of clothes that are for sale
+    this list should be based on the dataset that azazo is using
+    i guess just copy paste the set of what items have been purchased
+user can select one of them and then try it out virtually
+    ok so i have to find out how i am going to send images over http
+    im probably gonna be running the ai in python right so flask it is
+based on what the user views and buys, come up with recommendations as to what the user would be interested in
+
+
+
+================
+image formatting
+================
+by using PIL, i can get "256c", whatever that means
+image = img.convert("P", palette=Image.ADAPTIVE, colors=18)
+the above thing is bad. what i wanna do is to specify the available colours for it to use.
+    of course in my io solution i can do this cos theres no blur alr
+so what i would wanna do is to apply a huge blur (15-3 or 15-10 works ig)
+and then use the available palette colours
+bcos what that PIL line above does is that you can give a list of possible colours they can use, and the number of colours they will be able to use
+then they magically estimate what colours to use for each pixel or smt like that
+and what you have been doing is youre giving them a list of every colour and telling them use only 15
+and thats why the blurred outlines aggressively take up a colour
+
+NEW PLAN:
+i use my custom algorithm to sharpen the image
+basically just look around it and check for the valid colours
+i did try my own algorithm, it does *look* well, but it still doesnt work
+  probably bcos of the shape of the edges
+
+what im going to do now is to actually try doing the putpalette method mentioned in the issues thread
+i could do img.putpalette([255, 0, 0, 0, 255, 0, 0, 0, 255]) to limit the pixels to be red, green, blue or black
+but this only works if the image is in "P" mode
+i suppose i could try to convert it using image.convert("P", palette=Image.ADAPTIVE)
+then i need to confirm with myself how does the input to putpalette work?
+  just like above, its [r1, g1, b1, r2, g2, b2]
+
+apparently, when i convert the blurred image to P/adaptive mode, it uses all 256 colours (which is a good thing).
+  len( conv.getpalette() ) / 3 == 256
+looking at this image, the blurring between edges is now replaced with funny colours.
+now, ill try to limit the colours used by using putpalette.
+  for some reason this gives me completely random colours.
+
+i have an idea that still probably wouldnt work:
+  before blurring the image, find the colours that were used and use that for the palette
+  maybe this will make a difference in the random online answers??
+
+
+
+=============
+DOCUMENTATION
+=============
+How to setup a clothing item:
+    1. make it 768x1024
+    2. generate an image mask: background black, item white
+        (preferably, the original item should have white background but idt it matters)
+            (maybe ill test this)
+    3. make the mask "Grayscale Gray 256c": in gimp, go image>mode>grayscale and that should be done
+
+How to take in the person image:
+    1. make it 768x1024 (should be done on the client side??)
+        convert warren.jpg -gravity center -crop 3:4 -resize 768x1024 out.jpg
+    2. convert it to 192x256
+        convert out.jpg -resize 192x256 small.jpg
+    3. run the CIHP ai
+        torchgeometry.image.GaussianBlur((15, 15), (3, 3))
+        ykw theres no point doing that gaussian smoothing
+        focus on making it work
+    4. copy the visualise png over, just convert it to 768x1024 and maybe with interpolation???
+
+so after running CIHP ai, i get a png thats 8-bit/color RGB, or 8-bit sRGB
+but apparently i need 8-bit colormap, or 8-bit sRGB 256c
+    ans: limit to a set of colours using PIL (putpalette or convert or whatever)
+    https://stackoverflow.com/questions/51444659/difference-between-8-bit-color-rgb-and-8-bit-colormap
+    8bit/color rgb means every pixel is r/g/b, so each colour has different shades
+    8 bit colormap means map an integer to a set of colours, so 256 entries
+
+
+
+so the process will be the user sends over their selfie, then it is stored in this section of the app called "changing room"
+the user can go back to the changing room at any point in time
+when they see an item they like, click on the card and there will be a button for them to send a selfie of themselves, which will be sent to the server.
+after a while, the user can go back into "changing room" and they will see the picture there !!!
+openpose works as-is, assuming that the segmentation thing is good.
+    ./openpose.bin --image_dir img --hand --display 0 --disable_blending --write_images output --write_json json_output
+    try to run this in python??
+    yes, i dont need the face data. its also rlly expensive to get for some reason, 8GB RAM isnt enough
+
+now i still have to set up the segmentation, essentially just colour body parts:
+    hair (red), face (blue), neck (brown), shirt (orange), arm (light teal), pants (dark teal)
+    looking at their training images, maybe the colour doesnt matter???
+
+
+
+setup instructions:
+clone the repo
+download datasets and checkpoints from VITON-HD
+    https://drive.google.com/drive/folders/0B8kXrnobEVh9fnJHX3lCZzEtd20yUVAtTk5HdWk2OVV0RGl6YXc0NWhMOTlvb1FKX3Z1OUk?resourcekey=0-OIXHrDwCX8ChjypUbJo4fQ&usp=sharing
+set up openpose
+    mkdir build && cd build
+    cmake-gui ..
+    after configuration and generation, run `make -j12`
+    look into https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/installation/0_index.md for more installation details
+    then, `cd ..` (into the root directory of openpose)
+    cd models
+    ./getModels.sh
+    ./openpose.bin --image_dir img --hand --display 0 --disable_blending --write_images output --write_json json_output
+set up segmentation
+    download code from https://drive.google.com/drive/folders/1XVDSnH-iihMkstaSMK3GNxqLEwwMdRnR
+    download model from https://drive.google.com/open?id=1Mqpse5Gen4V4403wFEpv3w3JAsWw2uhk
+        mkdir checkpoints
+        mv CIHP_pgn checkpoints/
+    mkdir -p datasets/images
+    load images into the folder above
+    run inference_pgn.py
+load everything together into VITON
+    cp datasets/test/
+    resize the image: `convert input.jpg -gravity center -crop 3:4 -resize 768x1024 resized.jpg`
+    put the original image in images/
+    copy the image output in `openpose/output/` into `datasets/test/openpose-img`
+    copy the json output in `openpose/json_out/` into `datasets/test/openpose-json`
+    downscale the image before running CIHP_PGN:
+        convert resized.jpg -resize 192x256 downscale.jpg
+    upscale it: convert downscale_vis.png -resize 768x1024 upscale.png
+    apply gaussian blur
+    !!! NO IDEA WHAT I'M SUPPOSED TO DO HERE !!!
+        i believe its something to do with PIL.Image.putpalette
+    copy the image output to image-parse
+    run the VITON
+
+
+
+=================
+VITON COMPARISONS
+=================
+ShineOn looks really hard to set up
+praying that RGMN works
+    hm installing cupy-cuda with yay seems a little sus??
+    after i finally get cupy installed ill copy paste the dataset and checkpoints into the respective folders and hopefully ill be able to just run the test.py
+    i cant install cupy
+FVNT needs baidu but other than that it looks reasonable??
+FIFA looks really weird but im not familiar with anything to begin with
+    looking in the demo repo, theres the funny gradio frontend which ill probably want to look through
+
+
+
+conda is taking up 11G ahhhh
+-- ${Caffe_INCLUDE_DIRS} set by the user to /usr/include
+-- ${Caffe_LIBS} set by the user to /usr/lib/libcaffe.so
+NOTE: you may have to add Caffe_INCLUDE_DIRS and Caffe_LIBS in make-gui yourself. For me, I could not install the ATLAS library (a dependency for building caffe) so i installed the Caffe library directly and unchecked BUILD_CAFFE.
