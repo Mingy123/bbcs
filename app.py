@@ -17,9 +17,14 @@ embeddings["embedding"] = embeddings["embedding"].apply(
 )
 
 # this is ugly but i dont really care
-nn = NearestNeighbors(n_neighbors=10).fit(
+nn = NearestNeighbors(n_neighbors=20).fit(
     np.stack(embeddings["embedding"].tolist(), axis=0)
 )
+
+
+def get_details_by_id(id):
+    pass
+    # TODO: azazo
 
 def valid_cred(username, password, conn):
     query = conn.execute(("select username from users where "
@@ -91,22 +96,18 @@ def recommend():
     password = m.hexdigest()
     conn = sqlite3.connect(DATABASE)
     if not valid_cred(username, password, conn): abort(403)
-    ## AZAZO GIVE AI
 
-    # hello.
-
-    # :heart_eyes_cat:
-    # i have no idea how the csv looks like but this. should work
     purchase_history = [int(i.strip()) for i in conn.execute(f"select purchase_history from users where "
-        f"username == '{username}' and password == '{password}'").fetchall()[0].split(",")]
+        f"username == '{username}' and password == '{password}'").fetchall()[0][0].split(",")]
     conn.close()
-
     purchase_embeddings = embeddings.loc[embeddings["product_code"].isin(purchase_history)]
     average = np.average(purchase_embeddings["embedding"].tolist(), axis=0)
-
     distances, indices = nn.kneighbors(average.reshape(1, -1))
+    # indices is a list of numbers
 
-    return indices
+    ans = []
+    for i in indices:
+        item = get_details_by_id(i)
 
 # returns ["item_name", "image_name", price, id]
 # returns 404 if item doesnt exist
