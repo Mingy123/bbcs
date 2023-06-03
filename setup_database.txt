@@ -13,7 +13,10 @@ create table items (
 );
 create table purchases (
     uuid varchar primary key,
-    name varchar,
+    address varchar,
+    item varchar,
+    username varchar,
+    foreign key(item) references items(name) on delete cascade,
     foreign key(username) references users(username) on delete cascade
 );
 
