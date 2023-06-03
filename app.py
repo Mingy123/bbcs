@@ -1,7 +1,7 @@
 from flask import Flask, request, abort, send_from_directory
 from hashlib import sha256
 from uuid import uuid4
-import sqlite3, json
+import sqlite3, json, random
 
 from sklearn.neighbors import NearestNeighbors
 import pandas as pd
@@ -10,21 +10,16 @@ import numpy as np
 app = Flask(__name__)
 DATABASE = 'db'
 LOCKFILE = '.VITON-lock'
+ITEM_IDS = [867579,764751,554450,840588,616504,742924,597963,739669,468480,721491,572845,781135,697054,567638,865457,757552,737486,749499,478943,631258,694046,885239,738401,695421,885624,914956,623698,541097,767577,839673,610568,707100,881786,818673,578626,544739,611503,857413,626816,757700,837686,617822,541308,629420,554541,711034,893795,596400,729931,511923,574500,596508,503338,875105,861036,929506,813898,826492,810893,902980,660300,757872,778784,770177,617534,814198,625918,572106,729318,598049,788773,387426,767950,615247,703260,685712,870958,585716,679113,731128,609715,632534,806185,215337,825748,898192,771826,651368,801938,616249,667416,607046,786020,826150,785948,739851,730863,907396,532578,676267]
 
 embeddings = pd.read_csv("embeddings.csv")
 embeddings["embedding"] = embeddings["embedding"].apply(
     lambda x: eval(x)
 )
-
-# this is ugly but i dont really care
 nn = NearestNeighbors(n_neighbors=20).fit(
     np.stack(embeddings["embedding"].tolist(), axis=0)
 )
 
-
-def get_details_by_id(id):
-    pass
-    # TODO: azazo
 
 def valid_cred(username, password, conn):
     query = conn.execute(("select username from users where "
@@ -99,17 +94,37 @@ def recommend():
 
     purchase_history = [int(i.strip()) for i in conn.execute(f"select purchase_history from users where "
         f"username == '{username}' and password == '{password}'").fetchall()[0][0].split(",")]
-    conn.close()
     purchase_embeddings = embeddings.loc[embeddings["product_code"].isin(purchase_history)]
     average = np.average(purchase_embeddings["embedding"].tolist(), axis=0)
     distances, indices = nn.kneighbors(average.reshape(1, -1))
     # indices is a list of numbers
 
-    # TODO: name, url, price, id, tags
-    # just keep everything in the database
+    # name, url, price, id, tags
+    query = conn.execute("select * from items")
+    conn.close()
+    not_inside = [i for i in ITEM_IDS if i not in indices]
+    random.shuffle(not_inside)
     ans = []
     for i in indices:
-        item = get_details_by_id(i)
+        for j in query:
+            if j[3] == i:
+                ans.append({
+                    "name": j[0],
+                    "url": j[1],
+                    "price": j[2],
+                    "id": j[3],
+                    "tags": j[4]
+                })
+    for i in query:
+        if i in not_inside:
+            ans.append({
+                "name": i[0],
+                "url": i[1],
+                "price": i[2],
+                "id": i[3],
+                "tags": i[4]
+            })
+    return json.dumps(ans)
 
 # returns ["item_name", "image_name", price, id]
 # returns 404 if item doesnt exist
@@ -163,7 +178,7 @@ def payment():
     item = request.form.get("item")
     size = request.form.get("size")
     uuid = uuid4()
-    conn.execute(f"insert into puchases values('{uuid}', '{address}', '{item}', '{size}', '{username}')")
+    conn.execute(f"insert into purchases values('{uuid}', '{address}', '{item}', '{size}', '{username}')")
     conn.commit()
     conn.close()
     return str(uuid)
