@@ -36,7 +36,6 @@ def create_user():
     m = sha256()
     m.update(bytes(password, 'utf-8'))
     password = m.hexdigest()
-    # check whether the username is added to the list or not 
     conn = sqlite3.connect(DATABASE)
     try:
         conn.execute(f"insert into users values('{username}', '{password}', '', '')")
@@ -62,7 +61,7 @@ def check_login():
     return "success"
 
 
-# returns a string if success
+# returns a CSV if success
 # returns 403 if login fails
 @app.route("/viton-history")
 def viton_history():
@@ -125,7 +124,7 @@ def recommend():
             ans.append({
                 "name": i[0],
                 "url": i[1],
-                "price": i[3],
+                "price": i[2],
                 "id": i[3],
                 "tags": i[4]
             })
