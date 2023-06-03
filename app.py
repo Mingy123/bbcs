@@ -95,9 +95,10 @@ def recommend():
 
     # hello.
 
-    # assuming that .fetchall() returns list of (uuid, address, whatever)
-    purchase_history = [i[2] for i in conn.execute(f"select puchases from users where "
-        f"username == '{username}' and password == '{password}'").fetchall()]
+    # :heart_eyes_cat:
+    # i have no idea how the csv looks like but this. should work
+    purchase_history = [int(i.strip()) for i in conn.execute(f"select purchase_history from users where "
+        f"username == '{username}' and password == '{password}'").fetchall()[0].split(",")]
     conn.close()
 
     purchase_embeddings = embeddings.loc[embeddings["product_code"].isin(purchase_history)]
