@@ -92,12 +92,18 @@ def recommend():
     conn = sqlite3.connect(DATABASE)
     if not valid_cred(username, password, conn): abort(403)
 
-    purchase_history = [int(i.strip()) for i in conn.execute(f"select purchase_history from users where "
-        f"username == '{username}' and password == '{password}'").fetchall()[0][0].split(",")]
-    purchase_embeddings = embeddings.loc[embeddings["product_code"].isin(purchase_history)]
-    average = np.average(purchase_embeddings["embedding"].tolist(), axis=0)
-    distances, indices = nn.kneighbors(average.reshape(1, -1))
-    recco = [ITEM_IDS[i] for i in indices[0].tolist()] # indices was [[2, 3, 4]] limit to 100
+    history = conn.execute(f"select purchase_history from users where "
+        f"username == '{username}' and password == '{password}'").fetchall()[0][0]
+
+    recco = []
+
+    if history:
+        purchase_history = [int(i.strip()) for i in conn.execute(f"select purchase_history from users where "
+            f"username == '{username}' and password == '{password}'").fetchall()[0][0].split(",")]
+        purchase_embeddings = embeddings.loc[embeddings["product_code"].isin(purchase_history)]
+        average = np.average(purchase_embeddings["embedding"].tolist(), axis=0)
+        distances, indices = nn.kneighbors(average.reshape(1, -1))
+        recco = [ITEM_IDS[i] for i in indices[0].tolist()] # indices was [[2, 3, 4]] limit to 100
 
     # name, url, price, id, tags
     query = conn.execute("select * from items").fetchall()
