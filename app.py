@@ -97,7 +97,7 @@ def recommend():
 
     if history:
         purchase_history = [int(i.strip()) for i in conn.execute(f"select purchase_history from users where "
-            f"username == '{username}' and password == '{password}'").fetchall()[0][0].split(",")]
+            f"username == '{username}' and password == '{password}'").fetchall()[0][0][:-1].split(",")]
         purchase_embeddings = embeddings.loc[embeddings["product_code"].isin(purchase_history)]
         average = np.average(purchase_embeddings["embedding"].tolist(), axis=0)
         distances, indices = nn.kneighbors(average.reshape(1, -1))
