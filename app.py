@@ -108,15 +108,10 @@ def recommend():
     conn.close()
     not_inside = [i for i in ITEM_IDS if i not in recco]
     random.shuffle(not_inside)
-    print(not_inside)
-    print(recco)
-    for i in query: print(i[3], end=' ')
     ans = []
     for i in recco:
         for j in query:
-            if i == 893795: print('pass1')
             if j[3] == i:
-                print('ok')
                 ans.append({
                     "name": j[0],
                     "url": j[1],
@@ -126,7 +121,6 @@ def recommend():
                 })
     for i in query:
         if i[3] in not_inside:
-            print('ok')
             ans.append({
                 "name": i[0],
                 "url": i[1],
@@ -210,4 +204,4 @@ def index():
     return send_from_directory(".", "index.html")
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(host='0.0.0.0', port=8000)
