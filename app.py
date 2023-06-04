@@ -1,7 +1,7 @@
 from flask import Flask, request, abort, send_from_directory
 from hashlib import sha256
 from uuid import uuid4
-import sqlite3, json, random
+import sqlite3, json, random, os
 
 from sklearn.neighbors import NearestNeighbors
 import pandas as pd
@@ -159,6 +159,13 @@ def viton_out(file):
 # returns a uuid used to access the output later (GET /viton/{uuid}.png)
 @app.route("/viton", methods=["POST"])
 def viton_in():
+    username = request.headers.get("X-Username").replace("'", "''")
+    password = request.headers.get("X-Password")
+    m = sha256()
+    m.update(bytes(password, 'utf-8'))
+    password = m.hexdigest()
+    conn = sqlite3.connect(DATABASE)
+    if not valid_cred(username, password, conn): abort(403)
     if os.path.exists(LOCKFILE): abort(423)
     # touch file
     with open(LOCKFILE, 'a'):
@@ -171,6 +178,9 @@ def viton_in():
     pairs.write(f'user.jpg {name}.jpg')
     pairs.close()
     outfile = uuid4()
+    conn.execute(f"update users set viton_history = viton_history || '{outfile},' where username == '{username}'")
+    conn.commit()
+    conn.close()
     os.system(f"bash -i main.sh {outfile} &")
     return str(outfile)
 
@@ -199,4 +209,4 @@ def index():
     return send_from_directory(".", "index.html")
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host='0.0.0.0', port=8000, debug=True)
