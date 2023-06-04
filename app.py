@@ -75,7 +75,7 @@ def viton_history():
         f"username == '{username}' and password == '{password}'")).fetchall()
     conn.close()
     if not query: abort(403)
-    return query[0][0]
+    return query[0][0][:-1]
 
 
 # for this one i want to return a detailed list of every item
@@ -91,7 +91,7 @@ def recommend():
     if not valid_cred(username, password, conn): abort(403)
 
     history = conn.execute(f"select purchase_history from users where "
-        f"username == '{username}' and password == '{password}'").fetchall()[0][0]
+        f"username == '{username}' and password == '{password}'").fetchall()[0][0][:-1]
 
     recco = []
 

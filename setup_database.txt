@@ -18,7 +18,6 @@ create table purchases (
     item varchar,
     size varchar,
     username varchar,
-    foreign key(item) references items(name) on delete cascade,
     foreign key(username) references users(username) on delete cascade
 );
 .import itemdata items
