@@ -199,6 +199,7 @@ def payment():
     size = request.form.get("size")
     uuid = uuid4()
     conn.execute(f"insert into purchases values('{uuid}', '{address}', '{item}', '{size}', '{username}')")
+    conn.execute(f"update users set purchase_history = purchase_history || '{item},' where username == '{username}'")
     conn.commit()
     conn.close()
     return str(uuid)
