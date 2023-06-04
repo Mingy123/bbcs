@@ -134,7 +134,7 @@ def recommend():
                 "id": i[3],
                 "tags": i[4]
             })
-    return ans
+    return json.dumps(ans)
 
 # returns ["item_name", "image_name", price, id]
 # returns 404 if item doesnt exist
@@ -145,12 +145,12 @@ def item_detail():
     query = conn.execute(f"select * from items where name == '{id}'").fetchall()
     conn.close()
     if not query: abort(404)
-    return json.dumps(query[0])
+    return query[0]
 
 # static fileserver
 @app.route("/images/<path:file>")
 def clothes_image(file):
-    return send_from_directory('./VITON-HD/datasets/test/image', file)
+    return send_from_directory('./VITON-HD/datasets/test/cloth', file)
 @app.route("/viton/<path:file>", methods=["GET"])
 def viton_out(file):
     return send_from_directory('./output', file)
