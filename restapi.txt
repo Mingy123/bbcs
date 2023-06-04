@@ -1,0 +1,10 @@
+POST /create-user | form: username, password >> "success"
+GET /check-login | headers >> "success"
+GET /viton-history | headers >> CSV e.g. "uuid1,uuid2"
+GET /recommend | headers >> [ {"id":781135,"name":"blouse","price":69,1,"tags":"Tights,Blue,Baby","url":"00400"}, ... ]
+GET /detail?name=... >> { <like above> }
+GET /images/00400.jpg
+GET /viton/{uuid}.png
+POST /viton | form: name (image to try on e.g. "00400") | upload file using multipart/form-data >> uuid (for above)
+POST /payment | headers | form: address, item, size >> uuid (for user only)
+
